@@ -30,6 +30,123 @@ void HLexer::get_next( Token& token )
     }
 
     switch ( c_ ) {
+        
+        // Arithmetic
+        case "++":
+            token.type = Tokentype::OpArtInc;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case "--":
+            token.type = Tokentype::OpArtDec;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case '+':
+            token.type = Tokentype::OpArtPlus;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case '-':
+            token.type = Tokentype::OpArtMinus;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case '*':
+            token.type = Tokentype::OpArtMult;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case '/':
+            token.type = Tokentype::OpArtDiv;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case '%':
+            token.type = Tokentype::OpArtModulus;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        //Logical
+        case "&&":
+            token.type = Tokentype::OpLogAnd;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case "||":
+            token.type = Tokentype::OpLogOr;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case '!':
+            token.type = Tokentype::OpLogNot;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        //Assign
+        case '=':
+            token.type = Tokentype::OpAssign;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        // Keywords
+        case "class"
+            token.type = Tokentype::kwClass;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case "static":
+            token.type = Tokentype::kwStatic;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case "void":
+            token.type = Tokentype::kwVoid;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case "if":
+            token.type = Tokentype::kwIf;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case "else":
+            token.type = Tokentype::kwElse;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case "for":
+            token.type = Tokentype::kwFor;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case "return"
+            token.type = Tokentype::kwReturn;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case "break":
+            token.type = Tokentype::kwBreak;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case "continue":
+            token.type = Tokentype::kwContinue;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case "int":
+            token.type = Tokentype::kwInt;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+         case "real":
+            token.type = Tokentype::kwReal;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        
+        // Punctuation marks
         case '{':
             token.type = Tokentype::ptLBrace;
             token.lexeme.push_back(c_);
@@ -37,6 +154,36 @@ void HLexer::get_next( Token& token )
             break;
         case '}':
             token.type = Tokentype::ptRBrace;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case '[':
+            token.type = Tokentype::ptLBracket;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case ']':
+            token.type = Tokentype::ptRBracket;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+         case '(':
+            token.type = Tokentype::ptLParen;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case ')':
+            token.type = Tokentype::ptRParen;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+         case ';':
+            token.type = Tokentype::ptSemicolon;
+            token.lexeme.push_back(c_);
+            is_.get(c_);
+            break;
+        case ',':
+            token.type = Tokentype::ptComma;
             token.lexeme.push_back(c_);
             is_.get(c_);
             break;

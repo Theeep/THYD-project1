@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/project1.dir/main.cpp.o CMakeFiles/project1.dir/hlexer.cpp.o CMakeFiles/project1.dir/flexer.cpp.o  -o project1 
