@@ -5,197 +5,286 @@
 
 using namespace std;
 
-HLexer::HLexer( std::istream& is, SymbolTable& symbol_table )
-    : Lexer( is, symbol_table ), line_no_(1)
+HLexer::HLexer(std::istream &is, SymbolTable &symbol_table)
+    : Lexer(is, symbol_table), line_no_(1)
 {
-    is_.get( c_ );
+    is_.get(c_);
+    curr_.clear();
 }
 
-
-void HLexer::get_next( Token& token )
+void HLexer::get_next(Token &token)
 {
     token.lexeme.clear();
     token.entry = nullptr;
 
-    while ( is_.good() && isspace(c_) ) {
-        if ( c_ == '\n' ) { ++line_no_; }
+    while (is_.good() && isspace(c_))
+    {
+        if (c_ == '\n')
+        {
+            ++line_no_;
+        }
         is_.get(c_);
     }
 
     token.line = line_no_;
 
-    if ( !is_.good() ) {
+    if (!is_.good())
+    {
         token.type = Tokentype::EOI;
         return;
     }
 
-    switch ( c_ ) {
-        
-        // Arithmetic
-        case "++":
-            token.type = Tokentype::OpArtInc;
-            token.lexeme.push_back(c_);
+    if (isalpha(c_))
+    {
+        do
+        {
+            curr_.push_back(c_);
+            is_.get(c_);
+        } while (isalnum(c_) || c_ == '_');
+
+        if (curr_ == "class")
+        {
+            token.type = Tokentype::kwClass;
+        }
+        else if (curr_ == "static")
+        {
+            token.type = Tokentype::kwStatic;
+        }
+        else if (curr_ == "void")
+        {
+            token.type = Tokentype::kwVoid;
+        }
+        else if (curr_ == "if")
+        {
+            token.type = Tokentype::kwIf;
+        }
+        else if (curr_ == "else")
+        {
+            token.type = Tokentype::kwElse;
+        }
+        else if (curr_ == "for")
+        {
+            token.type = Tokentype::kwFor;
+        }
+        else if (curr_ == "return")
+        {
+            token.type = Tokentype::kwReturn;
+        }
+        else if (curr_ == "break")
+        {
+            token.type = Tokentype::kwBreak;
+        }
+        else if (curr_ == "continue")
+        {
+            token.type = Tokentype::kwContinue;
+        }
+        else if (curr_ == "int")
+        {
+            token.type = Tokentype::kwInt;
+        }
+        else if (curr_ == "real")
+        {
+            token.type = Tokentype::kwReal;
+        }
+        else
+        {
+            token.type = Tokentype::Identifier;
+        }
+    }
+    else if (isdigit(c_))
+    {
+        token.type = Tokentype::Number;
+
+        do
+        {
+            curr_.push_back(c_);
+            is_.get(c_);
+        } while (isdigit(c_));
+
+        if (c_ == '.')
+        {
+            do
+            {
+                curr_.push_back(c_);
+                is_.get(c_);
+            } while (isdigit(c_));
+
+            if (c_ == 'E')
+            {
+                curr_.push_back(c_);
+                is_.get(c_);
+                if (c_ == '+' || c_ == '-' || isdigit(c_))
+                {
+                    do
+                    {
+                        curr_.push_back(c_);
+                        is_.get(c_);
+                    } while (isdigit(c_));
+                }
+                else if (isalnum(c_))
+                {
+                    token.type = Tokentype::ErrUnknown;
+                    curr_.push_back(c_);
+                }
+            }
+            else if (isalnum(c_))
+            {
+                token.type = Tokentype::ErrUnknown;
+                curr_.push_back(c_);
+            }
+        }
+        else if (c_ == 'E')
+        {
+            curr_.push_back(c_);
+            is_.get(c_);
+            if (c_ == '+' || c_ == '-' || isdigit(c_))
+            {
+                do
+                {
+                    curr_.push_back(c_);
+                    is_.get(c_);
+                } while (isdigit(c_));
+            }
+            else if (isalnum(c_))
+            {
+                token.type = Tokentype::ErrUnknown;
+                curr_.push_back(c_);
+            }
+        }
+        else if (isalnum(c_))
+        {
+            token.type = Tokentype::ErrUnknown;
+            curr_.push_back(c_);
+        }
+    }
+    else if (ispunct(c_))
+    {
+        char next;
+
+        switch (c_)
+        {
+        case '[':
+            token.type = Tokentype::ptLBracket;
+            curr_ += c_;
+            break;
+        case ']':
+            token.type = Tokentype::ptRBracket;
+            curr_ += c_;
+            break;
+        case '(':
+            token.type = Tokentype::ptLParen;
+            curr_ += c_;
+            break;
+        case ')':
+            token.type = Tokentype::ptRParen;
+            curr_ += c_;
+            break;
+        case ';':
+            token.type = Tokentype::ptSemicolon;
+            curr_ += c_;
+            break;
+        case ',':
+            token.type = Tokentype::ptComma;
+            curr_ += c_;
+            break;
+        case '{':
+            token.type = Tokentype::ptLBrace;
+            curr_ += c_;
+            break;
+        case '}':
+            token.type = Tokentype::ptRBrace;
+            curr_ += c_;
+            break;
+        case '=':
+            next = is_.peek();
+            token.type = (next == '=') ? Tokentype::OpRelEQ : Tokentype::OpAssign;
+            curr_ = (next == '=') ? "==" : "=";
             is_.get(c_);
             break;
-        case "--":
-            token.type = Tokentype::OpArtDec;
-            token.lexeme.push_back(c_);
+        case '!':
+            next = is_.peek();
+            token.type = (next == '=') ? Tokentype::OpRelNEQ : Tokentype::OpLogNot;
+            curr_ = (next == '=') ? "!=" : "!";
+            is_.get(c_);
+            break;
+        case '<':
+            next = is_.peek();
+            token.type = (next == '=') ? Tokentype::OpRelLTE : Tokentype::OpRelLT;
+            curr_ = (next == '=') ? "<=" : "<";
+            is_.get(c_);
+            break;
+        case '>':
+            next = is_.peek();
+            token.type = (next == '=') ? Tokentype::OpRelGTE : Tokentype::OpRelGT;
+            curr_ = (next == '=') ? ">=" : ">";
             is_.get(c_);
             break;
         case '+':
-            token.type = Tokentype::OpArtPlus;
-            token.lexeme.push_back(c_);
+            next = is_.peek();
+            token.type = (next == '+') ? Tokentype::OpArtInc : Tokentype::OpArtPlus;
+            curr_ = (next == '+') ? "++" : "+";
             is_.get(c_);
             break;
         case '-':
-            token.type = Tokentype::OpArtMinus;
-            token.lexeme.push_back(c_);
+            next = is_.peek();
+            token.type = (next == '-') ? Tokentype::OpArtDec : Tokentype::OpArtMinus;
+            curr_ = (next == '-') ? "--" : "-";
             is_.get(c_);
             break;
         case '*':
             token.type = Tokentype::OpArtMult;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
+            curr_ = "*";
             break;
         case '/':
             token.type = Tokentype::OpArtDiv;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
+            curr_ = "/";
             break;
         case '%':
             token.type = Tokentype::OpArtModulus;
-            token.lexeme.push_back(c_);
+            curr_ = "%";
+            break;
+        case '&':
+            next = is_.peek();
+            token.type = (next == '&') ? Tokentype::OpLogAnd : Tokentype::ErrUnknown;
+            if (next == '&')
+            {
+                curr_ = "&&";
+            }
+            else
+            {
+                curr_ = "&";
+                curr_.push_back(c_);
+            }
             is_.get(c_);
             break;
-        //Logical
-        case "&&":
-            token.type = Tokentype::OpLogAnd;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case "||":
-            token.type = Tokentype::OpLogOr;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case '!':
-            token.type = Tokentype::OpLogNot;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        //Assign
-        case '=':
-            token.type = Tokentype::OpAssign;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        // Keywords
-        case "class"
-            token.type = Tokentype::kwClass;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case "static":
-            token.type = Tokentype::kwStatic;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case "void":
-            token.type = Tokentype::kwVoid;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case "if":
-            token.type = Tokentype::kwIf;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case "else":
-            token.type = Tokentype::kwElse;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case "for":
-            token.type = Tokentype::kwFor;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case "return"
-            token.type = Tokentype::kwReturn;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case "break":
-            token.type = Tokentype::kwBreak;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case "continue":
-            token.type = Tokentype::kwContinue;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case "int":
-            token.type = Tokentype::kwInt;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-         case "real":
-            token.type = Tokentype::kwReal;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        
-        // Punctuation marks
-        case '{':
-            token.type = Tokentype::ptLBrace;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case '}':
-            token.type = Tokentype::ptRBrace;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case '[':
-            token.type = Tokentype::ptLBracket;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case ']':
-            token.type = Tokentype::ptRBracket;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-         case '(':
-            token.type = Tokentype::ptLParen;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case ')':
-            token.type = Tokentype::ptRParen;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-         case ';':
-            token.type = Tokentype::ptSemicolon;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
-            break;
-        case ',':
-            token.type = Tokentype::ptComma;
-            token.lexeme.push_back(c_);
+        case '|':
+            next = is_.peek();
+            token.type = (next == '|') ? Tokentype::OpLogOr : Tokentype::ErrUnknown;
+            if (next == '|')
+            {
+                curr_ = "||";
+            }
+            else
+            {
+                curr_ = "|";
+                curr_.push_back(c_);
+            }
             is_.get(c_);
             break;
         default:
             token.type = Tokentype::ErrUnknown;
-            token.lexeme.push_back(c_);
-            is_.get(c_);
+            curr_.push_back(c_);
             break;
+        }
     }
+
+    token.lexeme = curr_;
+    is_.get(c_);
+    curr_.clear();
 }
 
-std::string HLexer::get_name() const {
+std::string HLexer::get_name() const
+{
     return "handmade";
 }
 
