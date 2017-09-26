@@ -1,3 +1,5 @@
+# Created by https://www.gitignore.io/api/c++,cmake,visualstudiocode
+
 ### C++ ###
 # Prerequisites
 *.d
@@ -32,3 +34,24 @@
 *.out
 *.app
 
+### CMake ###
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+build
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history
+
+# End of https://www.gitignore.io/api/c++,cmake,visualstudiocode
