@@ -13,6 +13,8 @@ class HLexer : public Lexer
     virtual ~HLexer();
 
   private:
+    void handleComment();
+    void addCurrToST(Token &token);
     std::string curr_;
     char c_;
     int line_no_;

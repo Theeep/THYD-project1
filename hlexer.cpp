@@ -16,6 +16,7 @@ void HLexer::get_next(Token &token)
 {
     token.lexeme.clear();
     token.entry = nullptr;
+    bool hasBeenAddedToST = false;
 
     while (is_.good() && isspace(c_))
     {
@@ -36,9 +37,15 @@ void HLexer::get_next(Token &token)
 
     if (isalpha(c_))
     {
+        
         do
         {
             curr_.push_back(c_);
+            char next = is_.peek();
+            if (!(isalnum(next)) && !(next == '_'))
+            {
+                break;
+            }
             is_.get(c_);
         } while (isalnum(c_) || c_ == '_');
 
@@ -89,6 +96,7 @@ void HLexer::get_next(Token &token)
         else
         {
             token.type = Tokentype::Identifier;
+            addCurrToST(token);
         }
     }
     else if (isdigit(c_))
@@ -98,64 +106,66 @@ void HLexer::get_next(Token &token)
         do
         {
             curr_.push_back(c_);
+            char next = is_.peek();
+            if (!isdigit(next) && next != '.' && next != 'E')
+            {
+                if (!hasBeenAddedToST)
+                {
+                    hasBeenAddedToST = true;
+                    addCurrToST(token);
+                }
+               
+                break;
+            }
             is_.get(c_);
         } while (isdigit(c_));
-
-        if (c_ == '.')
+        
+        if( c_ == '.')
         {
             do
             {
                 curr_.push_back(c_);
+                char next = is_.peek();
+                if (!isdigit(next) && next != 'E')
+                {
+
+                    if (!hasBeenAddedToST)
+                    {
+                        hasBeenAddedToST = true;
+                        addCurrToST(token);
+                    }
+                    break;
+                }
                 is_.get(c_);
             } while (isdigit(c_));
-
-            if (c_ == 'E')
-            {
-                curr_.push_back(c_);
-                is_.get(c_);
-                if (c_ == '+' || c_ == '-' || isdigit(c_))
-                {
-                    do
-                    {
-                        curr_.push_back(c_);
-                        is_.get(c_);
-                    } while (isdigit(c_));
-                }
-                else if (isalnum(c_))
-                {
-                    token.type = Tokentype::ErrUnknown;
-                    curr_.push_back(c_);
-                }
-            }
-            else if (isalnum(c_))
-            {
-                token.type = Tokentype::ErrUnknown;
-                curr_.push_back(c_);
-            }
+                
         }
-        else if (c_ == 'E')
+        if( c_ == 'E')
         {
-            curr_.push_back(c_);
-            is_.get(c_);
-            if (c_ == '+' || c_ == '-' || isdigit(c_))
+            do
             {
-                do
-                {
-                    curr_.push_back(c_);
-                    is_.get(c_);
-                } while (isdigit(c_));
-            }
-            else if (isalnum(c_))
-            {
-                token.type = Tokentype::ErrUnknown;
                 curr_.push_back(c_);
-            }
+                char next = is_.peek();
+                if (!isdigit(next))
+                {
+
+                    if (!hasBeenAddedToST)
+                    {
+                        hasBeenAddedToST = true;
+                        addCurrToST(token);
+                    }
+                    break;
+                }
+                is_.get(c_);
+            } while (isdigit(c_));
         }
-        else if (isalnum(c_))
+        if( isalpha(c_))
         {
             token.type = Tokentype::ErrUnknown;
             curr_.push_back(c_);
         }
+
+      
     }
     else if (ispunct(c_))
     {
@@ -179,12 +189,12 @@ void HLexer::get_next(Token &token)
             token.type = Tokentype::ptRParen;
             curr_ += c_;
             break;
-        case ';':
-            token.type = Tokentype::ptSemicolon;
-            curr_ += c_;
-            break;
         case ',':
             token.type = Tokentype::ptComma;
+            curr_ += c_;
+            break;
+        case ';':
+            token.type = Tokentype::ptSemicolon;
             curr_ += c_;
             break;
         case '{':
@@ -198,44 +208,94 @@ void HLexer::get_next(Token &token)
         case '=':
             next = is_.peek();
             token.type = (next == '=') ? Tokentype::OpRelEQ : Tokentype::OpAssign;
-            curr_ = (next == '=') ? "==" : "=";
-            is_.get(c_);
+            if (next == '=')
+            {
+                curr_ = "==";
+                is_.get(c_);
+            }
+            else 
+            {
+                curr_ = "=";
+            }
             break;
         case '!':
             next = is_.peek();
             token.type = (next == '=') ? Tokentype::OpRelNEQ : Tokentype::OpLogNot;
-            curr_ = (next == '=') ? "!=" : "!";
-            is_.get(c_);
+            if (next == '=')
+            {
+                curr_ = "!=";
+                is_.get(c_);
+            }
+            else 
+            {
+                curr_ = "!";
+            }
             break;
         case '<':
             next = is_.peek();
             token.type = (next == '=') ? Tokentype::OpRelLTE : Tokentype::OpRelLT;
-            curr_ = (next == '=') ? "<=" : "<";
-            is_.get(c_);
+            if (next == '=')
+            {
+                curr_ = "<=";
+                is_.get(c_);
+            }
+            else 
+            {
+                curr_ = "<";
+            }
             break;
         case '>':
             next = is_.peek();
             token.type = (next == '=') ? Tokentype::OpRelGTE : Tokentype::OpRelGT;
-            curr_ = (next == '=') ? ">=" : ">";
-            is_.get(c_);
+            if (next == '=')
+            {
+                curr_ = ">=";
+                is_.get(c_);
+            }
+            else 
+            {
+                curr_ = ">";
+            }
             break;
         case '+':
             next = is_.peek();
             token.type = (next == '+') ? Tokentype::OpArtInc : Tokentype::OpArtPlus;
-            curr_ = (next == '+') ? "++" : "+";
-            is_.get(c_);
+            if (next == '+')
+            {
+                curr_ = "++";
+                is_.get(c_);
+            }
+            else 
+            {
+                curr_ = "+";
+            }
             break;
         case '-':
             next = is_.peek();
             token.type = (next == '-') ? Tokentype::OpArtDec : Tokentype::OpArtMinus;
-            curr_ = (next == '-') ? "--" : "-";
-            is_.get(c_);
+            if (next == '-')
+            {
+                curr_ = "--";
+                is_.get(c_);
+            }
+            else 
+            {
+                curr_ = "-";
+            }
             break;
         case '*':
             token.type = Tokentype::OpArtMult;
             curr_ = "*";
             break;
         case '/':
+            next = is_.peek();
+            if (next == '*')
+            {
+                handleComment();
+                is_.get(c_);
+                curr_.clear();
+                return;
+            }
             token.type = Tokentype::OpArtDiv;
             curr_ = "/";
             break;
@@ -290,4 +350,27 @@ std::string HLexer::get_name() const
 
 HLexer::~HLexer()
 {
+}
+
+void HLexer::handleComment()
+{
+    is_.get(c_);
+    is_.get(c_);
+    while(true)
+    {
+        char next = is_.peek();
+        if (c_ == '*' && next == '/')
+        {
+            is_.get(c_);
+            return;
+        }
+        is_.get(c_);
+    }
+}
+void HLexer::addCurrToST(Token &token)
+{
+    SymbolTable::Entry *newEntry = new SymbolTable::Entry();
+    newEntry->name = curr_;
+    symbol_table_.add(*newEntry);
+    token.entry = newEntry;
 }
