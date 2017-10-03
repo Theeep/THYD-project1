@@ -1,0 +1,19 @@
+class Program {
+    int i, j;
+    real number;
+    /* I am a comment */
+    /*
+    multiliner
+    */
+    static void main() {
+        i = 0;
+        j = 1;
+        if ( i < j ) {
+           number = 12.34;
+        }
+        else {
+           number = 12.34E7
+        }
+        i = i + j;
+    }
+}

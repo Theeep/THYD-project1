@@ -4,15 +4,20 @@
 
 #include "lexer.h"
 
-class HLexer : public Lexer {
-public:
-    HLexer( std::istream& is, SymbolTable& symbol_table );
-    virtual void get_next( Token& token );
+class HLexer : public Lexer
+{
+  public:
+    HLexer(std::istream &is, SymbolTable &symbol_table);
+    virtual void get_next(Token &token);
     virtual std::string get_name() const;
     virtual ~HLexer();
-private:
+
+  private:
+    void handleComment();
+    void addCurrToST(Token &token);
+    std::string curr_;
     char c_;
-    int  line_no_;
+    int line_no_;
 };
 
 #endif //LEXER_HLEXER_H
